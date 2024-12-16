@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Rastreador de Distancia',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -44,7 +45,7 @@ class _LocationTrackerScreenState extends State<LocationTrackerScreen> {
   int pasajerosNinos = 0;
 
   double calcularTarifaInicial() {
-    double tarifa = 5.0;  // Tarifa base por el primer adulto
+    double tarifa = 5.0; // Tarifa base por el primer adulto
 
     // Sumar por adultos adicionales
     if (pasajerosAdultos > 1) {
@@ -103,7 +104,6 @@ class _LocationTrackerScreenState extends State<LocationTrackerScreen> {
   }
 
 
-
   bool _isValidMovement(Position position) {
     if (lastPosition == null) {
       lastUpdateTime = DateTime.now();
@@ -111,9 +111,10 @@ class _LocationTrackerScreenState extends State<LocationTrackerScreen> {
     }
 
     // Verificar la precisión horizontal
-    if (position.accuracy > 20) {
+    if (position.accuracy > 15) {
       setState(() {
-        statusMessage = 'Esperando mejor precisión: ${position.accuracy.toStringAsFixed(1)}m';
+        statusMessage =
+        'Esperando mejor precisión: ${position.accuracy.toStringAsFixed(1)} km';
       });
       return false;
     }
@@ -147,7 +148,7 @@ class _LocationTrackerScreenState extends State<LocationTrackerScreen> {
     );
 
     // Solo considerar movimientos mayores a 2 metros
-    if (distance < 2) {
+    if (distance < 1.5) {
       setState(() {
         statusMessage = 'Movimiento muy pequeño';
       });
@@ -159,31 +160,37 @@ class _LocationTrackerScreenState extends State<LocationTrackerScreen> {
     return true;
   }
 
+  double _ultimaTarifaInicial = 0.0; // Añade esta variable al inicio de la clase
+
   void _actualizarTarifa() {
-    // Si aún no hemos cobrado nada (inicio del viaje)
     if (ultimaDistanciaCobrada == 0) {
       setState(() {
-        // Aplicamos la tarifa inicial
-        tarifaTotal = calcularTarifaInicial();
+        // Guardamos la tarifa inicial separada
+        _ultimaTarifaInicial = calcularTarifaInicial();
+        tarifaTotal = _ultimaTarifaInicial;
 
         // Si ya superamos los 3 metros iniciales
         if (distanceInMeters > 3) {
-          // Calculamos cuántos metros extra después de los 3 metros
           double metrosExtra = distanceInMeters - 3;
-          // Añadimos 1.5 Bs por cada metro extra
-          tarifaTotal += metrosExtra.floor() * 1.5;
-          ultimaDistanciaCobrada = 3.0 + metrosExtra.floor().toDouble();
+          int metrosExtraRedondeados = metrosExtra.floor();
+          // Calculamos el extra por metros y lo sumamos a la tarifa inicial
+          double tarifaExtra = metrosExtraRedondeados * 1.5;
+          tarifaTotal = _ultimaTarifaInicial + tarifaExtra;
+          ultimaDistanciaCobrada = 3.0 + metrosExtraRedondeados.toDouble();
         } else {
           ultimaDistanciaCobrada = distanceInMeters.floor().toDouble();
         }
       });
-    } else if (distanceInMeters > 3) {
-      // Para actualizaciones posteriores, calculamos nuevos metros extra
-      double nuevosMetros = distanceInMeters - ultimaDistanciaCobrada;
-      if (nuevosMetros >= 1) {
+    } else {
+      double nuevaDistancia = distanceInMeters - ultimaDistanciaCobrada;
+
+      if (nuevaDistancia >= 1.0) {
         setState(() {
-          tarifaTotal += nuevosMetros.floor() * 1.5;
-          ultimaDistanciaCobrada += nuevosMetros.floor().toDouble();
+          int metrosNuevos = nuevaDistancia.floor();
+          // Usamos la última tarifa inicial guardada
+          tarifaTotal = _ultimaTarifaInicial +
+              ((distanceInMeters - 3).floor() * 1.5);
+          ultimaDistanciaCobrada += metrosNuevos.toDouble();
         });
       }
     }
@@ -204,8 +211,8 @@ class _LocationTrackerScreenState extends State<LocationTrackerScreen> {
     try {
       positionStreamSubscription = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.best,
-          distanceFilter: 2, // Mínimo 2 metros de movimiento
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 1,
         ),
       ).listen(
             (Position position) {
@@ -224,8 +231,8 @@ class _LocationTrackerScreenState extends State<LocationTrackerScreen> {
                 distanceInMeters += newDistance;
                 positions.add(position);
                 statusMessage = '''
-Velocidad: ${speedInMetersPerSecond.toStringAsFixed(1)} m/s
-Precisión: ${position.accuracy.toStringAsFixed(1)} m
+Velocidad: ${speedInMetersPerSecond.toStringAsFixed(1)} km/h
+Precisión: ${position.accuracy.toStringAsFixed(1)} km
 ''';
               });
               _actualizarTarifa();
@@ -265,122 +272,278 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Rastreador de Distancia'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'ChaliTaxi',
+          style: TextStyle(
+            color: Colors.red,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Pacifico',  // Si no tienes esta fuente, puedes quitarla
+            letterSpacing: 1.2,
+          ),
+        ),
+        centerTitle: true,  // Para centrarlo como en la imagen
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+      body: Column(
+        children: [
+          // Sección Pasajeros
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Column(
               children: [
-                Column(
-                  children: [
-                    const Text('Adultos'),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: !isTracking && pasajerosAdultos > 1
-                              ? () => setState(() => pasajerosAdultos--)
-                              : null,
-                        ),
-                        Text('$pasajerosAdultos'),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: !isTracking
-                              ? () => setState(() => pasajerosAdultos++)
-                              : null,
-                        ),
-                      ],
-                    ),
-                  ],
+                const Text(
+                  'Pasajeros',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                const SizedBox(width: 20),
-                Column(
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Niños'),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: !isTracking && pasajerosNinos > 0
-                              ? () => setState(() => pasajerosNinos--)
-                              : null,
-                        ),
-                        Text('$pasajerosNinos'),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: !isTracking
-                              ? () => setState(() => pasajerosNinos++)
-                              : null,
-                        ),
-                      ],
+                    // Adultos
+                    Container(
+                      width: 180,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFE4E4),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Adultos',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove_circle_outline,
+                                    color: Colors.red[400],
+                                    size: 20
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: !isTracking && pasajerosAdultos > 1
+                                    ? () => setState(() => pasajerosAdultos--)
+                                    : null,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6),
+                                child: Text(
+                                  '$pasajerosAdultos',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.add_circle_outline,
+                                    color: Colors.red[400],
+                                    size: 20
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: !isTracking
+                                    ? () => setState(() => pasajerosAdultos++)
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Niños
+                    Container(
+                      width: 168,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFE4E4),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Niños',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove_circle_outline,
+                                    color: Colors.red[400],
+                                    size: 20
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: !isTracking && pasajerosNinos > 0
+                                    ? () => setState(() => pasajerosNinos--)
+                                    : null,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6),
+                                child: Text(
+                                  '$pasajerosNinos',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.add_circle_outline,
+                                    color: Colors.red[400],
+                                    size: 20
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: !isTracking
+                                    ? () => setState(() => pasajerosNinos++)
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            // Tarifa inicial
-            Text(
-              'Tarifa inicial: ${calcularTarifaInicial().toStringAsFixed(1)} Bs',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 10),
+          ),
 
-            Text(
-              'Tarifa actual:',
-              style: Theme.of(context).textTheme.headlineSmall,
+          // Sección Tarifa
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Column(
+              children: [
+                const Text(
+                  'Tarifa inicial',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  'Bs. ${calcularTarifaInicial().toStringAsFixed(1)}',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red[600],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                const Text(
+                  'Tarifa estimada',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Bs. ${tarifaTotal.toStringAsFixed(1)}',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red[600],
+                  ),
+                ),
+                Text(
+                  '${distanceInMeters.toStringAsFixed(1)} kilometros recorridos',
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              '${tarifaTotal.toStringAsFixed(1)} Bs',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
+          ),
+
+          // Sección Distancia y botón
+          Flexible(
+            flex: 3, // Reduce el espacio que toma (menor número = menos espacio)
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.9, // Reduce el ancho al 90% de la pantalla
+              padding: const EdgeInsets.symmetric(vertical: 20), // Reduce el padding vertical
+              decoration: BoxDecoration(
+                color: Colors.red[600],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center, // Cambiado a center
+                mainAxisSize: MainAxisSize.min, // Hace que el Column tome el mínimo espacio necesario
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        '${distanceInMeters.toStringAsFixed(1)} km',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        statusMessage,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20), // Espacio específico entre elementos
+                  Container(
+                    width: 110,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isTracking ? Colors.white : Colors.green,
+                        foregroundColor: isTracking ? Colors.black : Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      onPressed: isTracking ? _stopTracking : _startTracking,
+                      child: Text(
+                        isTracking ? 'Detener' : 'Iniciar',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-            Text(
-              'Distancia total:',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              '${distanceInMeters.toStringAsFixed(1)} metros',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Velocidad: ${speedInMetersPerSecond.toStringAsFixed(1)} m/s',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              statusMessage,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              ),
-              onPressed: isTracking ? _stopTracking : _startTracking,
-              child: Text(
-                isTracking ? 'DETENER' : 'INICIAR',
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Puntos GPS: ${positions.length}',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
