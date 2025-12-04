@@ -33,6 +33,7 @@ class Destination {
       name: json['name'],
       description: json['description'],
       coordinates: LatLng(json['latitude'], json['longitude']),
+      icon: Icons.location_on, // Ícono por defecto al cargar desde JSON
     );
   }
 }
