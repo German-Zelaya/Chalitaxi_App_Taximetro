@@ -295,7 +295,7 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
         children: [
           // Botón izquierdo: Rutas Personalizadas
           Positioned(
-            left: 40,
+            left: 55,
             bottom: 16,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -439,7 +439,7 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
 
           // Botón derecho: Rutas Recomendadas
           Positioned(
-            right: 40,
+            right: 55,
             bottom: 16,
             child: Column(
               mainAxisSize: MainAxisSize.min,
