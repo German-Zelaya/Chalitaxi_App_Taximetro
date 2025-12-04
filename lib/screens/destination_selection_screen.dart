@@ -220,7 +220,7 @@ class _DestinationSelectionScreenState
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
-                        Icons.location_city,
+                        destination.icon, // Usar el ícono específico del destino
                         color: Colors.red[600],
                         size: 30,
                       ),

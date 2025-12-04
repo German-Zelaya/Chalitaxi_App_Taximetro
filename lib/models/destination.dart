@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
 /// Modelo que representa un destino en Sucre
@@ -6,12 +7,14 @@ class Destination {
   final String name;
   final String description;
   final LatLng coordinates;
+  final IconData icon;
 
   Destination({
     required this.id,
     required this.name,
     required this.description,
     required this.coordinates,
+    required this.icon,
   });
 
   Map<String, dynamic> toJson() {
@@ -43,36 +46,42 @@ class DestinationData {
         name: 'Plaza 25 de Mayo',
         description: 'Plaza principal de Sucre',
         coordinates: LatLng(-19.0489, -65.2593),
+        icon: Icons.park, // Árbol/parque
       ),
       Destination(
         id: 'terminal_terrestre',
         name: 'Terminal de Buses',
         description: 'Terminal Terrestre de Sucre (Ostria Gutiérrez)',
         coordinates: LatLng(-19.0355, -65.2622),
+        icon: Icons.directions_bus, // Bus
       ),
       Destination(
         id: 'mercado_central',
         name: 'Mercado Central',
         description: 'Mercado Central de Sucre',
         coordinates: LatLng(-19.0458, -65.2611),
+        icon: Icons.shopping_basket, // Canasta de compras
       ),
       Destination(
         id: 'parque_bolivar',
         name: 'Parque Simón Bolívar',
         description: 'Parque Bolívar',
         coordinates: LatLng(-19.0430, -65.2570),
+        icon: Icons.nature_people, // Naturaleza/personas
       ),
       Destination(
         id: 'aeropuerto',
         name: 'Aeropuerto Alcantarí',
         description: 'Aeropuerto Internacional de Sucre',
         coordinates: LatLng(-19.0071, -65.2887),
+        icon: Icons.flight, // Avión
       ),
       Destination(
         id: 'universidad',
         name: 'Universidad San Francisco Xavier',
         description: 'USFX Central - Batalla Junín',
         coordinates: LatLng(-19.0475, -65.2605),
+        icon: Icons.school, // Escuela/universidad
       ),
     ];
   }
