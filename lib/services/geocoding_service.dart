@@ -1,17 +1,20 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'local_places_database.dart';
 
 /// Resultado de una búsqueda de geocodificación
 class GeocodingResult {
   final String displayName;
   final LatLng coordinates;
   final String type;
+  final bool isLocalResult;
 
   GeocodingResult({
     required this.displayName,
     required this.coordinates,
     required this.type,
+    this.isLocalResult = false,
   });
 }
 
@@ -21,11 +24,11 @@ class GeocodingService {
 
   /// Busca lugares por texto
   ///
-  /// [query] - Texto a buscar (ej: "Hospital Santa Bárbara" o "Mercado")
-  /// [limitToSucre] - Si es true, limita la búsqueda a Sucre, Bolivia
+  /// [query] - Texto a buscar (ej: "Hospital", "Mercado Central")
   ///
   /// Retorna una lista de resultados encontrados
-  /// Prioriza POIs (puntos de interés) sobre calles y avenidas
+  /// PRIMERO busca en base de datos local (instantáneo, garantizado)
+  /// LUEGO complementa con Nominatim si es necesario
   Future<List<GeocodingResult>> searchPlace(
     String query, {
     bool limitToSucre = true,
@@ -35,84 +38,64 @@ class GeocodingService {
         return [];
       }
 
-      // Construir query con Sucre, Bolivia para mejorar resultados
-      String searchQuery = query;
-      if (limitToSucre) {
-        searchQuery = '$query, Sucre, Bolivia';
+      List<GeocodingResult> allResults = [];
+
+      // 1. BÚSQUEDA LOCAL (prioritaria, instantánea)
+      print('🔍 Buscando en base de datos local: "$query"');
+      final localPlaces = SucreLocalPlaces.search(query);
+
+      for (var place in localPlaces) {
+        allResults.add(GeocodingResult(
+          displayName: '${place.name} (${place.category}) - Sucre, Bolivia',
+          coordinates: place.coordinates,
+          type: place.category.toLowerCase(),
+          isLocalResult: true,
+        ));
       }
+
+      print('✅ Encontrados ${localPlaces.length} resultados locales');
+
+      // 2. BÚSQUEDA EN NOMINATIM (complementaria)
+      // Solo si hay menos de 5 resultados locales
+      if (allResults.length < 5) {
+        print('🌐 Complementando con Nominatim...');
+        final nominatimResults = await _searchNominatim(query);
+
+        // Agregar resultados de Nominatim que no estén duplicados
+        for (var result in nominatimResults) {
+          // Evitar duplicados comparando coordenadas cercanas
+          bool isDuplicate = allResults.any((existing) {
+            double distance = _calculateDistance(
+              existing.coordinates,
+              result.coordinates,
+            );
+            return distance < 100; // menos de 100 metros = duplicado
+          });
+
+          if (!isDuplicate && allResults.length < 10) {
+            allResults.add(result);
+          }
+        }
+      }
+
+      print('📊 Total de resultados: ${allResults.length}');
+      return allResults;
+    } catch (e) {
+      print('❌ Error en búsqueda: $e');
+      return [];
+    }
+  }
+
+  /// Búsqueda en Nominatim (solo como complemento)
+  Future<List<GeocodingResult>> _searchNominatim(String query) async {
+    try {
+      String searchQuery = '$query, Sucre, Bolivia';
 
       final url = Uri.parse(
         '$_baseUrl/search?'
         'q=${Uri.encodeComponent(searchQuery)}&'
         'format=json&'
-        'limit=10&'  // Aumentado para obtener más resultados
-        'addressdetails=1&'
-        'countrycodes=bo&'  // Solo Bolivia
-        'featuretype=settlement&'  // Priorizar asentamientos y POIs
-        'dedupe=1', // Eliminar duplicados
-      );
-
-      print('Buscando: $url');
-
-      final response = await http.get(
-        url,
-        headers: {
-          'User-Agent': 'ChaliTaxi/1.0', // Nominatim requiere User-Agent
-        },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Tiempo de espera agotado');
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-
-        if (data.isEmpty) {
-          // Si no encuentra nada con los filtros, intenta sin featuretype
-          return _searchWithoutFeatureType(searchQuery);
-        }
-
-        List<GeocodingResult> results = [];
-        for (var item in data) {
-          // Filtrar solo resultados dentro de Sucre (aproximadamente)
-          double lat = double.parse(item['lat']);
-          double lon = double.parse(item['lon']);
-
-          // Área aproximada de Sucre y alrededores
-          bool isInSucre = lat >= -19.1 && lat <= -18.9 &&
-                          lon >= -65.4 && lon <= -65.1;
-
-          if (!limitToSucre || isInSucre) {
-            results.add(GeocodingResult(
-              displayName: item['display_name'] ?? 'Lugar sin nombre',
-              coordinates: LatLng(lat, lon),
-              type: item['type'] ?? 'unknown',
-            ));
-          }
-        }
-
-        print('Encontrados ${results.length} resultados en Sucre');
-        return results;
-      } else {
-        print('Error HTTP: ${response.statusCode}');
-        return [];
-      }
-    } catch (e) {
-      print('Error en búsqueda: $e');
-      return [];
-    }
-  }
-
-  /// Búsqueda alternativa sin filtro de featuretype
-  Future<List<GeocodingResult>> _searchWithoutFeatureType(String query) async {
-    try {
-      final url = Uri.parse(
-        '$_baseUrl/search?'
-        'q=${Uri.encodeComponent(query)}&'
-        'format=json&'
-        'limit=10&'
+        'limit=5&'
         'addressdetails=1&'
         'countrycodes=bo&'
         'dedupe=1',
@@ -142,6 +125,7 @@ class GeocodingService {
               displayName: item['display_name'] ?? 'Lugar sin nombre',
               coordinates: LatLng(lat, lon),
               type: item['type'] ?? 'unknown',
+              isLocalResult: false,
             ));
           }
         }
@@ -152,6 +136,22 @@ class GeocodingService {
     } catch (e) {
       return [];
     }
+  }
+
+  /// Calcula distancia entre dos puntos en metros
+  double _calculateDistance(LatLng point1, LatLng point2) {
+    const double earthRadius = 6371000; // Radio de la Tierra en metros
+
+    double lat1Rad = point1.latitude * (3.14159265359 / 180);
+    double lat2Rad = point2.latitude * (3.14159265359 / 180);
+    double deltaLat = (point2.latitude - point1.latitude) * (3.14159265359 / 180);
+    double deltaLon = (point2.longitude - point1.longitude) * (3.14159265359 / 180);
+
+    double a = (deltaLat / 2) * (deltaLat / 2) +
+        lat1Rad.cos() * lat2Rad.cos() * (deltaLon / 2) * (deltaLon / 2);
+    double c = 2 * a.sqrt().atan2((1 - a).sqrt());
+
+    return earthRadius * c;
   }
 
   /// Obtiene el nombre de un lugar a partir de coordenadas (geocodificación inversa)
