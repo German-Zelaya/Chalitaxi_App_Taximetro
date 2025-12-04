@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'local_places_database.dart';
@@ -142,14 +143,14 @@ class GeocodingService {
   double _calculateDistance(LatLng point1, LatLng point2) {
     const double earthRadius = 6371000; // Radio de la Tierra en metros
 
-    double lat1Rad = point1.latitude * (3.14159265359 / 180);
-    double lat2Rad = point2.latitude * (3.14159265359 / 180);
-    double deltaLat = (point2.latitude - point1.latitude) * (3.14159265359 / 180);
-    double deltaLon = (point2.longitude - point1.longitude) * (3.14159265359 / 180);
+    double lat1Rad = point1.latitude * (pi / 180);
+    double lat2Rad = point2.latitude * (pi / 180);
+    double deltaLat = (point2.latitude - point1.latitude) * (pi / 180);
+    double deltaLon = (point2.longitude - point1.longitude) * (pi / 180);
 
-    double a = (deltaLat / 2) * (deltaLat / 2) +
-        lat1Rad.cos() * lat2Rad.cos() * (deltaLon / 2) * (deltaLon / 2);
-    double c = 2 * a.sqrt().atan2((1 - a).sqrt());
+    double a = sin(deltaLat / 2) * sin(deltaLat / 2) +
+        cos(lat1Rad) * cos(lat2Rad) * sin(deltaLon / 2) * sin(deltaLon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
 
     return earthRadius * c;
   }
