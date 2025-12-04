@@ -47,8 +47,8 @@ class DestinationData {
       Destination(
         id: 'terminal_terrestre',
         name: 'Terminal de Buses',
-        description: 'Terminal Terrestre de Sucre',
-        coordinates: LatLng(-19.0316, -65.2892),
+        description: 'Terminal Terrestre de Sucre (Ostria Gutiérrez)',
+        coordinates: LatLng(-19.0355, -65.2622),
       ),
       Destination(
         id: 'mercado_central',
@@ -71,8 +71,8 @@ class DestinationData {
       Destination(
         id: 'universidad',
         name: 'Universidad San Francisco Xavier',
-        description: 'Universidad Mayor Real y Pontificia',
-        coordinates: LatLng(-19.0525, -65.2580),
+        description: 'USFX Central - Batalla Junín',
+        coordinates: LatLng(-19.0475, -65.2605),
       ),
     ];
   }

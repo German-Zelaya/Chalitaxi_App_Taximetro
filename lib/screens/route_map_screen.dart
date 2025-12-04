@@ -10,11 +10,15 @@ import '../services/route_service.dart';
 class RouteMapScreen extends StatefulWidget {
   final Position currentPosition;
   final Destination destination;
+  final int adultos;
+  final int ninos;
 
   const RouteMapScreen({
     super.key,
     required this.currentPosition,
     required this.destination,
+    required this.adultos,
+    required this.ninos,
   });
 
   @override
@@ -177,7 +181,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                       _InfoChip(
                         icon: Icons.attach_money,
                         label: 'Tarifa est.',
-                        value: 'Bs. ${_route!.calculateEstimatedFare().toStringAsFixed(1)}',
+                        value: 'Bs. ${_route!.calculateEstimatedFare(adults: widget.adultos, children: widget.ninos).toStringAsFixed(1)}',
                       ),
                     ],
                   ),

@@ -5,7 +5,14 @@ import 'route_map_screen.dart';
 
 /// Pantalla para seleccionar un destino
 class DestinationSelectionScreen extends StatefulWidget {
-  const DestinationSelectionScreen({super.key});
+  final int adultos;
+  final int ninos;
+
+  const DestinationSelectionScreen({
+    super.key,
+    required this.adultos,
+    required this.ninos,
+  });
 
   @override
   State<DestinationSelectionScreen> createState() =>
@@ -92,6 +99,8 @@ class _DestinationSelectionScreenState
         builder: (context) => RouteMapScreen(
           currentPosition: currentPosition!,
           destination: destination,
+          adultos: widget.adultos,
+          ninos: widget.ninos,
         ),
       ),
     );
@@ -146,6 +155,44 @@ class _DestinationSelectionScreenState
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+              ],
+            ),
+          ),
+
+          // Información de pasajeros
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red[50],
+              border: Border(
+                bottom: BorderSide(color: Colors.red[200]!),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.people, color: Colors.red[600], size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Pasajeros: ${widget.adultos} adulto${widget.adultos > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    color: Colors.red[900],
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+                if (widget.ninos > 0) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    '+ ${widget.ninos} niño${widget.ninos > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      color: Colors.red[900],
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

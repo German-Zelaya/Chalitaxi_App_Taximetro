@@ -295,7 +295,10 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const DestinationSelectionScreen(),
+              builder: (context) => DestinationSelectionScreen(
+                adultos: pasajerosAdultos,
+                ninos: pasajerosNinos,
+              ),
             ),
           );
         },
