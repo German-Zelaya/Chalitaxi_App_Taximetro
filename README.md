@@ -1,6 +1,6 @@
 # ChaliTaxi
 
-App multiplataforma (Flutter) para rastreo de distancia y rutas recomendadas — desarrollada para facilitar la selección de destinos y el cálculo estimado de tarifas en la ciudad que cumpla con los requisitos de la app (incluye sistema de rutas con API OSRM y rastreo GPS).
+App multiplataforma (Flutter) para rastreo de distancia y rutas recomendadas — desarrollada para facilitar la selección de destinos y el cálculo estimado de tarifas en la ciudad de Sucre,Bolivia (incluye sistema de rutas con API OSRM y rastreo GPS).
 
 
 ---
