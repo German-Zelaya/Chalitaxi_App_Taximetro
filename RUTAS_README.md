@@ -2,7 +2,7 @@
 
 ## Descripción
 
-Se ha agregado un sistema de rutas recomendadas al taxímetro ChaliTaxi. Esta funcionalidad permite al conductor ver la ruta óptima hacia destinos populares en Sucre, Chuquisaca.
+Aumente al sistema de rutas recomendadas al taxímetro ChaliTaxi. Esta funcionalidad que permite al conductor ver la ruta óptima hacia destinos populares en Sucre, Chuquisaca.
 
 ## Características Implementadas
 
