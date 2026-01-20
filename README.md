@@ -1,8 +1,7 @@
 # ChaliTaxi
 
-App multiplataforma (Flutter) para rastreo de distancia y rutas recomendadas — desarrollada para facilitar la selección de destinos y el cálculo estimado de tarifas en la ciudad (incluye sistema de rutas con API OSRM y rastreo GPS).
+App multiplataforma (Flutter) para rastreo de distancia y rutas recomendadas — desarrollada para facilitar la selección de destinos y el cálculo estimado de tarifas en la ciudad que cumpla con los requisitos de la app (incluye sistema de rutas con API OSRM y rastreo GPS).
 
-Este README reúne lo esencial sobre qué hace el proyecto, su arquitectura, cómo ejecutarlo en diferentes plataformas, configuración importante y notas para desarrolladores.
 
 ---
 
