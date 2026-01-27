@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'screens/destination_selection_screen.dart';
 import 'screens/custom_route_screen.dart';
+import 'screens/splash_screen.dart';
+import 'widgets/tarifa_modal.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +22,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const LocationTrackerScreen(),
+      home: const SplashScreen(),
+      routes: {
+        '/home': (context) => const LocationTrackerScreen(),
+      },
     );
   }
 }
@@ -392,12 +397,9 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () {
-                          // TODO: Navegar a pantalla de información de tarifas
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Función en desarrollo'),
-                              duration: Duration(seconds: 1),
-                            ),
+                          showDialog(
+                            context: context,
+                            builder: (context) => const TarifaModal(),
                           );
                         },
                         customBorder: const CircleBorder(),

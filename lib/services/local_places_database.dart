@@ -68,13 +68,13 @@ class SucreLocalPlaces {
       LocalPlace(
         name: 'Mercado Campesino',
         category: 'Mercado',
-        coordinates: LatLng(-19.0442, -65.2625),
+        coordinates: LatLng(-19.03387, -65.25286),
         searchTerms: ['mercado', 'campesino', 'compras', 'verduras'],
       ),
       LocalPlace(
         name: 'Mercado Negro',
         category: 'Mercado',
-        coordinates: LatLng(-19.0465, -65.2605),
+        coordinates: LatLng(-19.04035, -65.25503),
         searchTerms: ['mercado', 'negro', 'compras'],
       ),
 
@@ -184,7 +184,7 @@ class SucreLocalPlaces {
       LocalPlace(
         name: 'Mercado Campesino (Comida)',
         category: 'Restaurante',
-        coordinates: LatLng(-19.0442, -65.2625),
+        coordinates: LatLng(-19.03387, -65.25286),
         searchTerms: ['comida', 'almuerzo', 'restaurante', 'mercado'],
       ),
       LocalPlace(
