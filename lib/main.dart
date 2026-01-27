@@ -508,7 +508,7 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
           image: DecorationImage(
             image: AssetImage('assets/images/fondo_taxi.png'),
             fit: BoxFit.cover,
-            opacity: 0.08, // Imagen más clara y sutil
+            opacity: 0.65, // Imagen más clara y sutil
           ),
         ),
         child: Column(
