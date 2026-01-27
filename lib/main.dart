@@ -276,7 +276,7 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
           'ChaliTaxi',
@@ -290,6 +290,7 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
         ),
         centerTitle: true,  // Para centrarlo como en la imagen
       ),
+      extendBodyBehindAppBar: true,
       // Botones flotantes con diseño vistoso
       floatingActionButton: Stack(
         children: [
@@ -501,8 +502,16 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
           ),
         ],
       ),
-      body: Column(
-        children: [
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/fondo_taxi.png'),
+            fit: BoxFit.cover,
+            opacity: 0.15, // Opacidad baja para que no moleste el contenido
+          ),
+        ),
+        child: Column(
+          children: [
           // Sección Pasajeros
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -757,6 +766,7 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
             ),
           ),
         ],
+        ),
       ),
     );
   }
