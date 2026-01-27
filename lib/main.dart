@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/destination_selection_screen.dart';
 import 'screens/custom_route_screen.dart';
 import 'screens/splash_screen.dart';
@@ -283,17 +284,16 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'ChaliTaxi',
-          style: TextStyle(
+          style: GoogleFonts.pacifico(
             color: Colors.red,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Pacifico',  // Si no tienes esta fuente, puedes quitarla
-            letterSpacing: 1.2,
+            fontSize: 32,
+            fontWeight: FontWeight.w400,
+            letterSpacing: 1.0,
           ),
         ),
-        centerTitle: true,  // Para centrarlo como en la imagen
+        centerTitle: true,
       ),
       // Botones flotantes con diseño vistoso
       floatingActionButton: Stack(
@@ -503,8 +503,16 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
           ),
         ],
       ),
-      body: Column(
-        children: [
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/fondo_taxi.png'),
+            fit: BoxFit.cover,
+            opacity: 0.65, // Imagen más clara y sutil
+          ),
+        ),
+        child: Column(
+          children: [
           // Sección Pasajeros
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -759,6 +767,7 @@ Precisión: ${position.accuracy.toStringAsFixed(1)} m
             ),
           ),
         ],
+        ),
       ),
     );
   }
